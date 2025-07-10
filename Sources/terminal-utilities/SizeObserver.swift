@@ -22,11 +22,9 @@ public final class SizeObserver {
         signal(SIGWINCH, SIG_IGN)
 
         signalHandler.setEventHandler { [weak self] in
-            guard let self else {
-                return
-            }
             let newSize = Terminal.size()
-            guard newSize != self.size else {
+
+            guard let self, newSize != self.size else {
                 return
             }
             self.size = newSize
