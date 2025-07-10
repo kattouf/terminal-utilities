@@ -28,6 +28,10 @@ public enum Terminal {
         print("\u{001B}[2J", terminator: "")
     }
 
+    public static func cursorUp(_ count: Int = 1) {
+        print("\u{1B}[\(count)A", terminator: "")
+    }
+
     public static func showCursor(_ show: Bool) {
         if show {
             print("\u{001B}[?25h", terminator: "")

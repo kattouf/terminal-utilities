@@ -1,4 +1,5 @@
 import ArgumentParser
+import Foundation
 import TerminalUtilities
 
 #if canImport(Darwin)
@@ -12,7 +13,8 @@ struct TerminalUtilitiesCLI: AsyncParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(subcommands: [
             SizeCommand.self,
-            AnimateCommand.self
+            SizeObserverCommand.self,
+            AnimateCommand.self,
         ])
     }
 
@@ -26,6 +28,38 @@ struct SizeCommand: ParsableCommand {
 
     mutating func run() {
         print("Current window dimensions:", Terminal.size(), separator: "\n")
+    }
+}
+
+struct SizeObserverCommand: ParsableCommand {
+    static var configuration: CommandConfiguration {
+        CommandConfiguration(commandName: "size-observer")
+    }
+
+    mutating func run() {
+        print("Running size observer, change the size of your terminal window to see the output change")
+
+        func currentSizeMessage(_ size: Size) -> String {
+            "Current window dimensions: \(size)"
+        }
+
+        print(currentSizeMessage(Terminal.size()))
+        Terminal.cursorUp()
+
+        let sizeObserver = SizeObserver()
+        var lastPrinterMessageLength: Int?
+        sizeObserver.observe { size in
+            if let lastPrinterMessageLength {
+                Terminal.eraseChars(lastPrinterMessageLength)
+            }
+            let toPrint = currentSizeMessage(size)
+            lastPrinterMessageLength = toPrint.count
+            print(toPrint, terminator: "")
+            fflush(stdout)
+        }
+
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in }
+        RunLoop.current.run()
     }
 }
 
