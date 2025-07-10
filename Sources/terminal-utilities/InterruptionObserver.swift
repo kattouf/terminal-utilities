@@ -21,9 +21,7 @@ public final class InterruptionObserver {
         signal(SIGINT, SIG_IGN)
 
         signalHandler.setEventHandler { [weak self] in
-            guard let self else {
-                return
-            }
+            guard let self else { return }
             self.interruptionHandlers.forEach { $0() }
             exit(SIGINT)
         }
