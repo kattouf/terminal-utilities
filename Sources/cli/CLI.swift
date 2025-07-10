@@ -75,9 +75,9 @@ struct AnimateCommand: AsyncParsableCommand {
     mutating func run() async throws {
         Terminal.showCursor(false)
         defer { Terminal.showCursor(true) }
-        signal(SIGINT) { _ in
+
+        Terminal.onInterruptionExit {
             Terminal.showCursor(true)
-            Foundation.exit(0)
         }
 
         print("\n")

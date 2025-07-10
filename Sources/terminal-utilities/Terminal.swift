@@ -39,4 +39,10 @@ public enum Terminal {
             print("\u{001B}[?25l", terminator: "")
         }
     }
+
+    private nonisolated(unsafe) static let interruptionObserver = InterruptionObserver()
+    public static func onInterruptionExit(_ handler: @escaping () -> Void) {
+        interruptionObserver.observe()
+        interruptionObserver.addInterruptionHandler(handler)
+    }
 }
