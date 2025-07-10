@@ -40,9 +40,13 @@ public enum Terminal {
         }
     }
 
-    private nonisolated(unsafe) static let interruptionObserver = InterruptionObserver()
+    private nonisolated(unsafe) static let sizeObserver = SizeObserver.observe()
+    public static func onSizeChange(_ handler: @escaping (Size) -> Void) {
+        sizeObserver.addSizeChangeHandler(handler)
+    }
+
+    private nonisolated(unsafe) static let interruptionObserver = InterruptionObserver.observe()
     public static func onInterruptionExit(_ handler: @escaping () -> Void) {
-        interruptionObserver.observe()
         interruptionObserver.addInterruptionHandler(handler)
     }
 }

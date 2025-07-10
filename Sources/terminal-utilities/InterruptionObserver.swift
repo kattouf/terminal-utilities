@@ -4,10 +4,12 @@ public final class InterruptionObserver {
     private var signalHandler: DispatchSourceSignal?
     private var interruptionHandlers = [() -> Void]()
 
-    public init() {}
+    private init() {}
 
-    public func observe() {
-        setupSignalHandler()
+    public static func observe() -> InterruptionObserver {
+        let observer = InterruptionObserver()
+        observer.setupSignalHandler()
+        return observer
     }
 
     public func addInterruptionHandler(_ handler: @escaping () -> Void) {

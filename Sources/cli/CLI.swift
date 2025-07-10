@@ -40,22 +40,30 @@ struct SizeObserverCommand: ParsableCommand {
         print("Running size observer, change the size of your terminal window to see the output change")
         print("Press Ctrl+C to stop")
 
+        Terminal.showCursor(false)
+        defer { Terminal.showCursor(true) }
+        Terminal.onInterruptionExit {
+            Terminal.showCursor(true)
+        }
+
         func currentSizeMessage(_ size: Size) -> String {
             "Current window dimensions: \(size)"
         }
 
-        print(currentSizeMessage(Terminal.size()))
+        var lastSizeMessageLength: Int?
+
+        let initialSizeMessage = currentSizeMessage(Terminal.size())
+        lastSizeMessageLength = initialSizeMessage.count
+        print(initialSizeMessage)
         Terminal.cursorUp()
 
-        let sizeObserver = SizeObserver()
-        var lastPrinterMessageLength: Int?
-        sizeObserver.observe { size in
-            if let lastPrinterMessageLength {
-                Terminal.eraseChars(lastPrinterMessageLength)
+        Terminal.onSizeChange { size in
+            if let lastSizeMessageLength {
+                Terminal.eraseChars(lastSizeMessageLength)
             }
-            let toPrint = currentSizeMessage(size)
-            lastPrinterMessageLength = toPrint.count
-            print(toPrint, terminator: "")
+            let sizeMessage = currentSizeMessage(size)
+            lastSizeMessageLength = sizeMessage.count
+            print(sizeMessage, terminator: "")
             fflush(stdout)
         }
 
@@ -75,7 +83,6 @@ struct AnimateCommand: AsyncParsableCommand {
     mutating func run() async throws {
         Terminal.showCursor(false)
         defer { Terminal.showCursor(true) }
-
         Terminal.onInterruptionExit {
             Terminal.showCursor(true)
         }

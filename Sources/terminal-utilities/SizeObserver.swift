@@ -3,20 +3,23 @@ import Foundation
 public final class SizeObserver {
     private var signalHandler: DispatchSourceSignal?
     private(set) var size = Terminal.size()
-    private var sizeDidChange: ((Size) -> Void)?
+    private var sizeChangeHandlers = [(Size) -> Void]()
 
-    public init() {}
+    private init() {}
 
-    public func observe(sizeDidChange: @escaping (Size) -> Void) {
-        setupSignalHandler()
-        self.sizeDidChange = sizeDidChange
+    public static func observe() -> SizeObserver {
+        let observer = SizeObserver()
+        observer.setupSignalHandler()
+        return observer
+    }
+
+    public func addSizeChangeHandler(_ handler: @escaping (Size) -> Void) {
+        self.sizeChangeHandlers.append(handler)
     }
 
     private func setupSignalHandler() {
-        let sigwinch = SIGWINCH
-
-        let signalHandler = DispatchSource.makeSignalSource(signal: sigwinch)
-        signal(sigwinch, SIG_IGN)
+        let signalHandler = DispatchSource.makeSignalSource(signal: SIGWINCH)
+        signal(SIGWINCH, SIG_IGN)
 
         signalHandler.setEventHandler { [weak self] in
             guard let self else {
@@ -27,7 +30,7 @@ public final class SizeObserver {
                 return
             }
             self.size = newSize
-            self.sizeDidChange?(newSize)
+            self.sizeChangeHandlers.forEach { $0(newSize) }
         }
         signalHandler.resume()
 
