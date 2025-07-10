@@ -38,6 +38,7 @@ struct SizeObserverCommand: ParsableCommand {
 
     mutating func run() {
         print("Running size observer, change the size of your terminal window to see the output change")
+        print("Press Ctrl+C to stop")
 
         func currentSizeMessage(_ size: Size) -> String {
             "Current window dimensions: \(size)"
