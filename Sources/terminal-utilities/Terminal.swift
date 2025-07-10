@@ -28,11 +28,25 @@ public enum Terminal {
         print("\u{001B}[2J", terminator: "")
     }
 
+    public static func cursorUp(_ count: Int = 1) {
+        print("\u{1B}[\(count)A", terminator: "")
+    }
+
     public static func showCursor(_ show: Bool) {
         if show {
             print("\u{001B}[?25h", terminator: "")
         } else {
             print("\u{001B}[?25l", terminator: "")
         }
+    }
+
+    private nonisolated(unsafe) static let sizeObserver = SizeObserver.observe()
+    public static func onSizeChange(_ handler: @escaping (Size) -> Void) {
+        sizeObserver.addSizeChangeHandler(handler)
+    }
+
+    private nonisolated(unsafe) static let interruptionObserver = InterruptionObserver.observe()
+    public static func onInterruptionExit(_ handler: @escaping () -> Void) {
+        interruptionObserver.addInterruptionHandler(handler)
     }
 }

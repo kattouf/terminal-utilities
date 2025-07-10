@@ -1,4 +1,5 @@
 import ArgumentParser
+import Foundation
 import TerminalUtilities
 
 #if canImport(Darwin)
@@ -12,7 +13,8 @@ struct TerminalUtilitiesCLI: AsyncParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(subcommands: [
             SizeCommand.self,
-            AnimateCommand.self
+            SizeObserverCommand.self,
+            AnimateCommand.self,
         ])
     }
 
@@ -29,6 +31,47 @@ struct SizeCommand: ParsableCommand {
     }
 }
 
+struct SizeObserverCommand: ParsableCommand {
+    static var configuration: CommandConfiguration {
+        CommandConfiguration(commandName: "size-observer")
+    }
+
+    mutating func run() {
+        print("Running size observer, change the size of your terminal window to see the output change")
+        print("Press Ctrl+C to stop")
+
+        Terminal.showCursor(false)
+        defer { Terminal.showCursor(true) }
+        Terminal.onInterruptionExit {
+            Terminal.showCursor(true)
+        }
+
+        func currentSizeMessage(_ size: Size) -> String {
+            "Current window dimensions: \(size)"
+        }
+
+        var lastSizeMessageLength: Int?
+
+        let initialSizeMessage = currentSizeMessage(Terminal.size())
+        lastSizeMessageLength = initialSizeMessage.count
+        print(initialSizeMessage)
+        Terminal.cursorUp()
+
+        Terminal.onSizeChange { size in
+            if let lastSizeMessageLength {
+                Terminal.eraseChars(lastSizeMessageLength)
+            }
+            let sizeMessage = currentSizeMessage(size)
+            lastSizeMessageLength = sizeMessage.count
+            print(sizeMessage, terminator: "")
+            fflush(stdout)
+        }
+
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in }
+        RunLoop.current.run()
+    }
+}
+
 struct AnimateCommand: AsyncParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(
@@ -40,6 +83,9 @@ struct AnimateCommand: AsyncParsableCommand {
     mutating func run() async throws {
         Terminal.showCursor(false)
         defer { Terminal.showCursor(true) }
+        Terminal.onInterruptionExit {
+            Terminal.showCursor(true)
+        }
 
         print("\n")
 
